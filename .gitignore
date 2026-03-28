@@ -1,0 +1,24 @@
+# ─── Runtime logs (generated, not source) ────────────────────────────────────
+*.log
+logs/
+
+# ─── User-specific Task Scheduler exports ────────────────────────────────────
+# (exported XMLs contain your username — use the template in task-scheduler/)
+*-exported.xml
+*-personal.xml
+
+# ─── Secrets that may be embedded in scripts ─────────────────────────────────
+*.env
+.env*
+secrets/
+
+# ─── OS artifacts ────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+
+# ─── Editor ──────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp

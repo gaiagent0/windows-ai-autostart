@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-16"?>
+<!--
+  AIStack-Autostart.xml — Task Scheduler definition for AI stack boot automation
+  
+  INSTALLATION (Admin CMD):
+    schtasks /create /tn "AIStack-Autostart" /xml "C:\AI\scripts\AIStack-Autostart.xml" /f
+  
+  IMPORTANT: This file MUST be saved as UTF-16 LE with BOM.
+  PowerShell save:
+    $content = Get-Content AIStack-Autostart.xml
+    [System.IO.File]::WriteAllText("C:\AI\scripts\AIStack-Autostart.xml", $content,
+      [System.Text.Encoding]::Unicode)
+
+  REQUIRED EDITS before import:
+    1. Replace "COMPUTERNAME\username" in UserId fields with your actual account
+    2. Adjust script path in Arguments if not using C:\AI\scripts\
+-->
+<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+
+  <RegistrationInfo>
+    <Description>AI Stack startup: WSL2 Docker containers, GenieAPIService NPU, Open WebUI health check.</Description>
+    <Author>COMPUTERNAME\username</Author>
+    <!-- Replace COMPUTERNAME\username with your actual account -->
+  </RegistrationInfo>
+
+  <Triggers>
+    <LogonTrigger>
+      <Enabled>true</Enabled>
+      <UserId>COMPUTERNAME\username</UserId>
+      <!-- Replace COMPUTERNAME\username with your actual account -->
+
+      <!-- CRITICAL: /delay parameter is silently ignored via schtasks CLI for ONLOGON triggers.
+           This XML element is the ONLY reliable way to set the delay.
+           
+           Boot timing analysis (Snapdragon X Elite, cold boot):
+             0s   - Logon trigger fires
+            ~10s  - Windows shell + tray initializes
+            ~20s  - WSL2 Hyper-V VM starts
+            ~30s  - WSL2 systemd init completes
+            ~40s  - Docker daemon ready
+            45s   - This script starts → Docker already available -->
+      <Delay>PT45S</Delay>
+    </LogonTrigger>
+  </Triggers>
+
+  <Principals>
+    <Principal id="Author">
+      <UserId>COMPUTERNAME\username</UserId>
+      <!-- Replace with your account -->
+
+      <!-- InteractiveToken: required for WSL2 access.
+           SYSTEM account raises WSL_E_LOCAL_SYSTEM_NOT_SUPPORTED.
+           WSL2 is a Hyper-V VM bound to the user's interactive session. -->
+      <LogonType>InteractiveToken</LogonType>
+
+      <!-- HighestAvailable vs Highest:
+           HighestAvailable = elevated if account is admin, normal if not. No UAC prompt.
+           Highest          = requires admin, fails silently if UAC blocks it.
+           HighestAvailable is correct here — elevated needed for Hyper-V FW rules,
+           but must not require interactive UAC prompt on boot. -->
+      <RunLevel>HighestAvailable</RunLevel>
+    </Principal>
+  </Principals>
+
+  <Settings>
+    <!-- Prevent parallel instances if previous run is still active -->
+    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+
+    <!-- Run on battery: true — laptop use case, AI stack needed without AC -->
+    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
+
+    <!-- If logon is missed (e.g. task was disabled), run at next opportunity -->
+    <StartWhenAvailable>true</StartWhenAvailable>
+
+    <!-- 10-minute hard limit — covers Docker cold-start + model load.
+         Without this, a hung script would block indefinitely. -->
+    <ExecutionTimeLimit>PT10M</ExecutionTimeLimit>
+
+    <!-- Priority 7 = normal Windows process priority (0=realtime, 7=normal, 9=low) -->
+    <Priority>7</Priority>
+
+    <Enabled>true</Enabled>
+    <Hidden>false</Hidden>
+
+    <IdleSettings>
+      <StopOnIdleEnd>false</StopOnIdleEnd>
+      <RestartOnIdle>false</RestartOnIdle>
+    </IdleSettings>
+  </Settings>
+
+  <Actions Context="Author">
+    <Exec>
+      <!-- powershell.exe (5.1) — NOT pwsh.exe (7.x)
+           Reason: Task Scheduler on Windows Home uses the built-in PS 5.1 host.
+           pwsh.exe works too, but requires separate install and path verification. -->
+      <Command>powershell.exe</Command>
+      <Arguments>-ExecutionPolicy Bypass -NonInteractive -WindowStyle Hidden -File "C:\AI\scripts\start-ai-stack.ps1"</Arguments>
+      <!-- Adjust path if your script is elsewhere -->
+    </Exec>
+  </Actions>
+
+</Task>
