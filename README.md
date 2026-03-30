@@ -1,4 +1,4 @@
-# windows-ai-autostart
+﻿# windows-ai-autostart
 
 > **Reliable AI stack autostart for Windows 11 ARM64 + WSL2**  
 > Task Scheduler · PowerShell 5.1 · systemd --user · Boot automation
@@ -29,7 +29,7 @@ Windows Boot
     │
     ├── Task Scheduler: AIStack-Autostart
     │   Trigger:  ONLOGON, PT45S delay
-    │   Principal: VIVO2\your-username, InteractiveToken, HighestAvailable
+    │   Principal: VIVO2\gaiagent0, InteractiveToken, HighestAvailable
     │   Action:  powershell.exe -File start-ai-stack.ps1
     │       │
     │       ├── 1. WSL2 ready check (lazy init if needed)
@@ -86,7 +86,7 @@ Expected output:
 ```
 Status:          Ready
 Logon Mode:      Interactive only
-Run As User:     your-username
+Run As User:     gaiagent0
 Schedule Type:   At logon time
 ```
 
@@ -135,5 +135,5 @@ windows-ai-autostart/
 
 | Repo | Description |
 |------|-------------|
-| [snapdragon-ai-stack](https://github.com/your-username/snapdragon-ai-stack) | Full stack setup guide |
-| [litellm-local-config](https://github.com/your-username/litellm-local-config) | LiteLLM proxy config |
+| [snapdragon-ai-stack](https://github.com/gaiagent0/snapdragon-ai-stack) | Full stack setup guide |
+| [litellm-local-config](https://github.com/gaiagent0/litellm-local-config) | LiteLLM proxy config |

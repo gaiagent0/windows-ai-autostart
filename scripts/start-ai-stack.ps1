@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     AI Stack autostart script for Windows 11 ARM64 + WSL2.
@@ -25,7 +25,7 @@
       schtasks /create /tn "AIStack-Autostart" /xml AIStack-Autostart.xml /f
 
 .LINK
-    https://github.com/your-username/windows-ai-autostart
+    https://github.com/gaiagent0/windows-ai-autostart
 #>
 
 # ─────────────────────────────────────────────────────────────────────────────
